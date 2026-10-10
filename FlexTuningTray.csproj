@@ -7,5 +7,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="res/tablet.ico" />
+    <EmbeddedResource Include="res/laptop.ico" />
+  </ItemGroup>
 
 </Project>
