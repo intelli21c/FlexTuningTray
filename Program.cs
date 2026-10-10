@@ -38,8 +38,6 @@ internal static class Program
                 tabletIcon = new Icon(iconStream2);
             }
 
-
-
             var menu = new ContextMenuStrip();
 
             statusItem = new ToolStripMenuItem("상태 확인");
@@ -56,7 +54,7 @@ internal static class Program
 
             tray = new NotifyIcon
             {
-                Icon = tabletIcon,
+                Icon = SystemIcons.Application,
                 Text = AppName,
                 ContextMenuStrip = menu,
                 Visible = true
@@ -205,17 +203,18 @@ internal static class Program
                     return;
 
                 p.WaitForExit();
+                if (p.ExitCode != 0)
+                {
 
-                MessageBox.Show(
-                    p.ExitCode == 0
-                        ? "서비스 명령이 완료되었습니다."
-                        : $"명령 실행 실패 (코드 {p.ExitCode}).",
-                    AppName,
-                    MessageBoxButtons.OK,
-                    p.ExitCode == 0
-                        ? MessageBoxIcon.Information
-                        : MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        $"명령 실행 실패 (코드 {p.ExitCode}).",
+                        AppName,
+                        MessageBoxButtons.OK,
+                        p.ExitCode == 0
+                            ? MessageBoxIcon.Information
+                            : MessageBoxIcon.Warning);
 
+                }
                 RefreshStatus();
             }
             catch (System.ComponentModel.Win32Exception ex)

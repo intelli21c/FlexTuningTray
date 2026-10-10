@@ -1,16 +1,35 @@
-//Single file executable
-//usage - dontet run Register.csx -- C:\full\path\to\FlexTuningTray.exe {enable|disable}
+// Single-file executable
+// Usage:
+//   dotnet run Register.cs -- "C:\full\path\to\FlexTuningTray.exe" enable
+//   dotnet run Register.cs -- "C:\full\path\to\FlexTuningTray.exe" disable
+
 using System;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
 using Microsoft.Win32;
 
-string program = "";
-bool enabled = false;
+const string AppName = "FlexTuningTray";
 
+if (args.Length != 2)
+{
+    Console.Error.WriteLine(
+        "Usage: dotnet run Register.csx <full-path-to-exe> <enable|disable>");
+    Environment.ExitCode = 1;
+    return;
+}
 
+string program = args[0];
+string action = args[1];
+
+if (!string.Equals(action, "enable", StringComparison.OrdinalIgnoreCase) &&
+    !string.Equals(action, "disable", StringComparison.OrdinalIgnoreCase))
+{
+    Console.Error.WriteLine("Action must be 'enable' or 'disable'.");
+    Environment.ExitCode = 1;
+    return;
+}
+
+bool enabled = string.Equals(
+    action, "enable", StringComparison.OrdinalIgnoreCase);
 
 try
 {
@@ -24,24 +43,28 @@ try
 
     if (enabled)
     {
-        string exe = Environment.ProcessPath
-            ?? throw new InvalidOperationException(
-                "실행 파일 경로를 확인할 수 없습니다.");
+        if (!Path.IsPathFullyQualified(program))
+            throw new ArgumentException(
+                "EXE 경로는 절대 경로여야 합니다.");
 
+        if (!File.Exists(program))
+            throw new FileNotFoundException(
+                "실행 파일을 찾을 수 없습니다.", program);
+
+        // 경로에 공백이 있어도 정상 실행되도록 따옴표 처리
+        string exe = Path.GetFullPath(program);
         key.SetValue(AppName, $"\"{exe}\"");
+
+        Console.WriteLine($"자동 실행 등록 완료: {exe}");
     }
     else
     {
         key.DeleteValue(AppName, throwOnMissingValue: false);
+        Console.WriteLine("자동 실행 등록 해제 완료.");
     }
-
-    MessageBox.Show(
-        enabled ? "자동 실행을 등록했습니다."
-                : "자동 실행을 해제했습니다.",
-        AppName);
 }
 catch (Exception ex)
 {
-    MessageBox.Show(ex.Message, AppName,
-        MessageBoxButtons.OK, MessageBoxIcon.Error);
+    Console.Error.WriteLine($"오류: {ex.Message}");
+    Environment.ExitCode = 1;
 }
